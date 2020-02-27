@@ -1,9 +1,18 @@
 repo: https://github.com/huntdatacenter/charm-golang-openstack-exporter.git
 includes:
-    - 'layer:basic'
-    - 'layer:snap'
-    - 'interface:http'
-    - 'interface:prometheus'
-    - 'interface:nrpe-external-master'
-    - 'interface:keystone-credentials'
-ignore: ['.*.swp' ]
+  - 'layer:basic'
+  - 'layer:snap'
+  - 'interface:http'
+  - 'interface:prometheus'
+  - 'interface:nrpe-external-master'
+  - 'interface:keystone-credentials'
+exclude:
+  - .pre-commit-config.yaml
+  - .yamllint.yaml
+  - .github
+  - .vagrant
+  - vagrant.yaml
+  - Vagrantfile
+  - version
+  - tox.ini
+  - tests

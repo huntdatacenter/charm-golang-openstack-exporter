@@ -1,20 +1,20 @@
-import yaml
 import base64
-from charms.reactive import (
-    when, when_not, when_any, set_state, remove_state
-)
 
-from charms.reactive.helpers import data_changed
-from charms.reactive.relations import endpoint_from_flag, endpoint_from_name
-
-from charmhelpers.core import (
-    hookenv,
-    host,
-    unitdata
-)
+import yaml
+from charmhelpers.contrib.charmsupport import nrpe
+from charmhelpers.core import hookenv
+from charmhelpers.core import host
+from charmhelpers.core import unitdata
 from charmhelpers.core.templating import render
 from charms.layer import snap
-from charmhelpers.contrib.charmsupport import nrpe
+from charms.reactive import remove_state
+from charms.reactive import set_state
+from charms.reactive import when
+from charms.reactive import when_any
+from charms.reactive import when_not
+from charms.reactive.helpers import data_changed
+from charms.reactive.relations import endpoint_from_flag
+from charms.reactive.relations import endpoint_from_name
 
 BINARY_FILE = '/snap/golang-openstack-exporter/current/bin/openstack-exporter'
 SNAP_NAME = 'golang-openstack-exporter'
@@ -34,7 +34,7 @@ CONFIG_MAP = {
         'target': '/etc/systemd/system/golang-openstack-exporter.service',
     },
     'clouds': {
-        'source': 'clouds.yaml',
+        'source': 'clouds.tpl',
         'target': '{etcdir}/clouds.yaml'.format(etcdir=VAR_SNAP_ETC),
     },
     'cacert': {
