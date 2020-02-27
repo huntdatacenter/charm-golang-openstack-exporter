@@ -29,7 +29,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: charm
-          path: /tmp/charm-builds/alerta
+          path: /tmp/charm-builds/golang-openstack-exporter
   test:
     runs-on: ubuntu-18.04
     needs: build
@@ -53,10 +53,10 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: charm
-          path: /tmp/charm-builds/alerta
+          path: /tmp/charm-builds/golang-openstack-exporter
       # Workarounds for https://github.com/actions/upload-artifact/issues/38
-      - run: chmod +x -R /tmp/charm-builds/alerta/bin
-      - run: chmod +x -R /tmp/charm-builds/alerta/hooks
+      - run: chmod +x -R /tmp/charm-builds/golang-openstack-exporter/bin
+      - run: chmod +x -R /tmp/charm-builds/golang-openstack-exporter/hooks
       - name: Set up LXD
         run: |
           sudo usermod --append --groups lxd $(whoami)

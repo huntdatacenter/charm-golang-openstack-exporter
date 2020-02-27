@@ -1,6 +1,6 @@
 # Golang Openstack Exporter Charm
 
-![GitHub Action CI badge](https://github.com/huntdatacenter/alerta-charm/workflows/ci/badge.svg)
+![GitHub Action CI badge](https://github.com/huntdatacenter/charm-golang-openstack-exporter/workflows/ci/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Usage
