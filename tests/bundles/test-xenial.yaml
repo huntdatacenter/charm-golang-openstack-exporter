@@ -1,0 +1,9 @@
+# Jujuna test bundle
+---
+openstack-exporter:
+  service:
+    golang-openstack-exporter:
+      status: 'running'
+  network:
+    port:
+      '9183': True

@@ -1,0 +1,37 @@
+name: golang-openstack-exporter
+maintainer: Prometheus Charmers <prometheus-charmers@lists.launchpad.net>
+summary: Golang Openstack exporter for Prometheus
+description: |
+  This is an exporter that exposes information gathered from Openstack
+  for use by Prometheus.
+tags:
+  - openstack
+  - monitoring
+  - prometheus
+requires:
+  identity-credentials:
+    interface: keystone-credentials
+provides:
+  scrape:
+    interface: prometheus
+  golang-openstack-exporter-service:
+    interface: http
+  nrpe-external-master:
+    interface: nrpe-external-master
+    scope: container
+series:
+  - xenial
+  - bionic
+extra-bindings:
+  public:
+  admin:
+  internal:
+resources:
+  golang-openstack-exporter:
+    type: file
+    filename: golang-openstack-exporter.snap
+    description: Golang OpenStack Exporter snap
+  core:
+    type: file
+    filename: core.snap
+    description: Core snap, prerequisite of other snaps

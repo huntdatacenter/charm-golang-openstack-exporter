@@ -1,0 +1,15 @@
+[Unit]
+Description=golang-openstack-exporter
+Documentation=https://github.com/openstack-exporter/openstack-exporter
+
+[Service]
+Restart=always
+User=root
+EnvironmentFile={{ config_file }}
+ExecStart={{ binary_file }} default $ARGS
+ExecReload=/bin/kill -HUP $MAINPID
+TimeoutStopSec=20s
+SendSIGKILL=no
+
+[Install]
+WantedBy=multi-user.target

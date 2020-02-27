@@ -1,0 +1,28 @@
+series: bionic
+applications:
+  prometheus:
+    charm: cs:prometheus2-12
+    num_units: 1
+  openstack-exporter:
+    charm: /tmp/charm-builds/golang-openstack-exporter
+    num_units: 1
+    expose: True
+    options:
+      port: 9183
+      network: False
+      compute: False
+      image: False
+      volume: False
+  keystone:
+    charm: cs:keystone-310
+    num_units: 1
+  mysql:
+    charm: cs:mysql
+    num_units: 1
+relations:
+- - mysql:shared-db
+  - keystone:shared-db
+- - openstack-exporter:identity-credentials
+  - keystone:identity-credentials
+- - openstack-exporter:scrape
+  - prometheus:scrape

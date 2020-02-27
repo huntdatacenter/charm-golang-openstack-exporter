@@ -1,0 +1,8 @@
+# Config is managed by Openstack exporter charm
+# Set the command-line arguments to pass to the server.
+ARGS="--web.listen-address=:{{ port }}" \
+     "--os-client-config={{ credentials }}" \
+     "--prefix={{ prefix }}"{% if disabled %} \{% endif %}
+     {% for dis in disabled -%}
+     "--disable-service.{{ dis }}" \
+     {% endfor -%}

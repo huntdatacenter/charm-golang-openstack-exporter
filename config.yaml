@@ -1,0 +1,55 @@
+options:
+  snap_channel:
+    default: "stable"
+    type: string
+    description: |
+        This option controlls channel name.
+        Supported values are: "stable", "candidate", "beta" and "edge"
+  ssl_ca:
+    default: ""
+    type: string
+    description: |
+      TLS CA certficate, to be added as OS_CACERT
+  os-credentials:
+    default: ""
+    type: string
+    description: |
+      YAML string with admin user to use to query openstack APIs, e.g.
+      "{ username: $OS_USERNAME, password: $OS_PASSWORD,
+         tenant_name: $OS_TENANT_NAME, region_name: $OS_REGION_NAME,
+         auth_url: '$OS_AUTH_URL' }"
+  port:
+    type: int
+    default: 9183
+    description: |
+      Port where the exporter listens
+  network:
+    type: boolean
+    default: True
+    description: |
+      Network service exporter
+  compute:
+    type: boolean
+    default: True
+    description: |
+      Compute service exporter
+  image:
+    type: boolean
+    default: True
+    description: |
+      Image service exporter
+  volume:
+    type: boolean
+    default: False
+    description: |
+      Volume service exporter
+  identity:
+    type: boolean
+    default: True
+    description: |
+      Identity service exporter
+  prefix:
+    default: "openstack"
+    type: string
+    description: |
+      Prometheus prefix for metrics
