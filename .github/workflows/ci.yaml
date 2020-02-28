@@ -74,5 +74,5 @@ jobs:
       - name: Run jujuna tests
         run: make test-${{ matrix.test_bundles }}
       - name: Display juju debug log on failure
-        run: juju debug-log --lines 200
+        run: juju debug-log --lines 1000
         if: failure()
