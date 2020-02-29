@@ -55,8 +55,8 @@ jobs:
           name: charm
           path: /tmp/charm-builds/golang-openstack-exporter
       # Workarounds for https://github.com/actions/upload-artifact/issues/38
-      - run: chmod +x -R /tmp/charm-builds/golang-openstack-exporter/bin
-      - run: chmod +x -R /tmp/charm-builds/golang-openstack-exporter/hooks
+      - run: chmod +x /tmp/charm-builds/golang-openstack-exporter/bin/*
+      - run: chmod +x /tmp/charm-builds/golang-openstack-exporter/hooks/*
       - name: Set up LXD
         run: |
           sudo usermod --append --groups lxd $(whoami)
