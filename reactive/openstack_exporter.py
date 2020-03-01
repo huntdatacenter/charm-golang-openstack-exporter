@@ -27,7 +27,7 @@ DEFAULTS, SERVICE, CLOUDS, CACERT = ('defaults', 'service', 'clouds', 'cacert')
 CONFIG_MAP = {
     'defaults': {
         'source': 'golang-openstack-exporter',
-        'target': '/etc/defaults/golang-openstack-exporter',
+        'target': '/etc/default/golang-openstack-exporter',
     },
     'service': {
         'source': 'golang-openstack-exporter.service',
@@ -124,12 +124,13 @@ def get_credentials():
             hookenv.log('get_credentials: config os-credentials not set and '
                         'identity-credentials relation not yet ready')
             return None
-        for key, default in [
-            ('credentials_user_domain_name', 'credentials_user_domain_id'),
-            ('credentials_project_domain_name', 'credentials_project_domain_id'),  # noqa
-            ('api_version', 'identity_api_version')
+        for key, v1, v2 in [
+            ('credentials_user_domain_name', 'credentials_user_domain_id', 'default'),  # noqa
+            ('credentials_project_domain_name', 'credentials_project_domain_id', 'Default'),  # noqa
+            ('api_version', 'identity_api_version', 3)
         ]:
-            creds[key] = creds.get(key, creds.get(default))
+            if not creds.get(key):
+                creds[key] = creds.get(v1) if creds.get(v1) else v2
     ssl_ca = convert_from_base64(config.get('ssl_ca'))
     if ssl_ca:
         creds['ssl_ca'] = ssl_ca

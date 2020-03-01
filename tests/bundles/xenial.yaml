@@ -16,6 +16,8 @@ applications:
   keystone:
     charm: cs:keystone-310
     num_units: 1
+    options:
+      preferred-api-version: 3
   mysql:
     charm: cs:mysql
     num_units: 1
