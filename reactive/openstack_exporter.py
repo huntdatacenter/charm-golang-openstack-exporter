@@ -1,19 +1,20 @@
 import base64
-import yaml
 
+import yaml
 from charmhelpers.contrib.charmsupport import nrpe
-from charmhelpers.core import hookenv, host, unitdata
+from charmhelpers.core import hookenv
+from charmhelpers.core import host
+from charmhelpers.core import unitdata
 from charmhelpers.core.templating import render
 from charmhelpers.fetch.snap import snap_install
-from charms.reactive import (
-    hook,
-    remove_state,
-    set_state,
-    when,
-    when_not
-)
+from charms.reactive import hook
+from charms.reactive import remove_state
+from charms.reactive import set_state
+from charms.reactive import when
+from charms.reactive import when_not
 from charms.reactive.helpers import data_changed
-from charms.reactive.relations import endpoint_from_flag, endpoint_from_name
+from charms.reactive.relations import endpoint_from_flag
+from charms.reactive.relations import endpoint_from_name
 
 BINARY_FILE = '/snap/golang-openstack-exporter/current/bin/openstack-exporter'
 SNAP_NAME = 'golang-openstack-exporter'
