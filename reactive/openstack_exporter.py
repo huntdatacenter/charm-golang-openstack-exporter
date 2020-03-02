@@ -153,6 +153,14 @@ def render_config():
     render_path(DEFAULTS, ctx)
     render_path(SERVICE, ctx)
     restart_service()
+    set_state('openstackexporter.configured')
+
+
+@when('openstackexporter.installed'
+      'openstackexporter.authorized')
+@when_not('openstackexporter.started')
+def start():
+    render_config()
     hookenv.status_set('active', 'Ready')
     set_state('openstackexporter.started')
 
@@ -258,6 +266,7 @@ def departed_keystone():
 
 @when('identity.available.auth',
       'openstackexporter.identityset')
+@when_not('openstackexporter.authorized')
 def save_creds():
     try:
         keystone = endpoint_from_name('identity')
@@ -267,8 +276,7 @@ def save_creds():
         }
         if data.get('credentials_username'):
             reconfig_on_change('keystone-relation-creds', data)
-        else:
-            remove_state('openstackexporter.identityset')
+            set_state('openstackexporter.authorized')
     except Exception as e:
         hookenv.log("Keystone credentials failed: {}".format(str(e)),
                     level=hookenv.ERROR)
