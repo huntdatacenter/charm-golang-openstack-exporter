@@ -20,7 +20,7 @@ options:
          auth_url: '$OS_AUTH_URL' }"
   port:
     type: int
-    default: 9183
+    default: 9180
     description: |
       Port where the exporter listens
   network:
