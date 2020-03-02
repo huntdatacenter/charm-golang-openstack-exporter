@@ -26,12 +26,3 @@ extra-bindings:
   public:
   admin:
   internal:
-resources:
-  golang-openstack-exporter:
-    type: file
-    filename: golang-openstack-exporter.snap
-    description: Golang OpenStack Exporter snap
-  core:
-    type: file
-    filename: core.snap
-    description: Core snap, prerequisite of other snaps
