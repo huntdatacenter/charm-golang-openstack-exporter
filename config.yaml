@@ -26,7 +26,7 @@ options:
       if you wish to increase timeouts, set to '-w 20 -c 30'.
   port:
     type: int
-    default: 9183
+    default: 9180
     description: |
       Port where the exporter listens
   network:
