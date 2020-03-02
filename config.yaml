@@ -18,6 +18,12 @@ options:
       "{ username: $OS_USERNAME, password: $OS_PASSWORD,
          tenant_name: $OS_TENANT_NAME, region_name: $OS_REGION_NAME,
          auth_url: '$OS_AUTH_URL' }"
+  extra-nrpe-args:
+    type: string
+    default: ""
+    description: |
+      Additional arguments to set for the check_http Nagios nrpe check.  E.g.
+      if you wish to increase timeouts, set to '-w 20 -c 30'.
   port:
     type: int
     default: 9183

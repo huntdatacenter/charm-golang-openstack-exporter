@@ -9,12 +9,12 @@ tags:
   - monitoring
   - prometheus
 requires:
-  identity-credentials:
+  identity:
     interface: keystone-credentials
 provides:
   scrape:
     interface: prometheus
-  golang-openstack-exporter-service:
+  target:
     interface: http
   nrpe-external-master:
     interface: nrpe-external-master

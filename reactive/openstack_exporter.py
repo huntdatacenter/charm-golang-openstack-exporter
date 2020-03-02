@@ -1,20 +1,19 @@
 import base64
-
 import yaml
+
 from charmhelpers.contrib.charmsupport import nrpe
-from charmhelpers.core import hookenv
-from charmhelpers.core import host
-from charmhelpers.core import unitdata
+from charmhelpers.core import hookenv, host, unitdata
 from charmhelpers.core.templating import render
-from charms.layer import snap
-from charms.reactive import remove_state
-from charms.reactive import set_state
-from charms.reactive import when
-from charms.reactive import when_any
-from charms.reactive import when_not
+from charmhelpers.fetch.snap import snap_install
+from charms.reactive import (
+    hook,
+    remove_state,
+    set_state,
+    when,
+    when_not
+)
 from charms.reactive.helpers import data_changed
-from charms.reactive.relations import endpoint_from_flag
-from charms.reactive.relations import endpoint_from_name
+from charms.reactive.relations import endpoint_from_flag, endpoint_from_name
 
 BINARY_FILE = '/snap/golang-openstack-exporter/current/bin/openstack-exporter'
 SNAP_NAME = 'golang-openstack-exporter'
@@ -44,38 +43,24 @@ CONFIG_MAP = {
 }
 
 
-@when_not('exporter.installed')
+@when_not('openstackexporter.installed')
 def install_packages():
     hookenv.status_set('maintenance', 'Installing software')
     config = hookenv.config()
     channel = config.get('snap_channel', 'stable')
     # required for offline installs
     # uses charm store if no "core" resource is provided
-    snap.install('core')
-    snap.install(SNAP_NAME, channel=channel, force_dangerous=False)
+    snap_install('core')
+    snap_install(SNAP_NAME, '--{}'.format(channel))
     hookenv.status_set('maintenance', 'Software installed')
-    set_state('exporter.installed')
+    set_state('openstackexporter.installed')
 
 
-@when('identity-credentials.connected')
-def configure_keystone_username(keystone):
-    keystone.request_credentials(SNAP_NAME)
-
-
-@when('identity-credentials.available')
-def save_creds(keystone):
-    reconfig_on_change('keystone-relation-creds', {
-        key: getattr(keystone, key.replace('-', '_'))()
-        for key in keystone.auto_accessors
-    })
-
-
-@when_any('exporter.installed', 'exporter.do-check-reconfig')
+@hook('config-changed')
 def check_reconfig_exporter():
     config = hookenv.config()
-    if data_changed('exporter.config', config):
-        set_state('exporter.do-reconfig')
-    remove_state('exporter.do-check-reconfig')
+    if data_changed('openstackexporter.config', config):
+        render_config()
 
 
 def convert_from_base64(v):
@@ -138,7 +123,6 @@ def get_credentials():
     return creds
 
 
-@when('exporter.do-reconfig')
 def render_config():
     """Render the configuration for charm when all the interfaces are
     available.
@@ -167,8 +151,9 @@ def render_config():
     render_path(CLOUDS, creds)
     render_path(DEFAULTS, ctx)
     render_path(SERVICE, ctx)
-    remove_state('exporter.do-reconfig')
-    set_state('exporter.do-restart')
+    restart_service()
+    hookenv.status_set('active', 'Ready')
+    set_state('openstackexporter.started')
 
 
 def restart_service():
@@ -181,72 +166,115 @@ def restart_service():
     host.service('enable', SVC_NAME)
 
 
-@when('exporter.do-restart')
-def do_restart():
-    restart_service()
-    hookenv.status_set('active', 'Ready')
-    remove_state('exporter.do-restart')
-    set_state('golang-openstack-exporter.started')
-
-
-@when('golang-openstack-exporter-service.available'
-      'golang-openstack-exporter.started')
-def configure_exporter_service(exporter_service):
-    config = hookenv.config()
-    exporter_service.configure(config.get('port'))
-
-
 @when('nrpe-external-master.available')
-def update_nrpe_config(svc):
-    hostname = nrpe.get_nagios_hostname()
-    nrpe_setup = nrpe.NRPE(hostname=hostname)
-    config = hookenv.config()
-    port = config.get('port')
-    extra_nrpe_args = config.get('extra-nrpe-args')
-    # Note(aluria): check_http addresses LP#1829470
-    # (/metrics takes too long, while / check takes ms
-    # A final fix will land once LP#1829496 is fixed
-    # (we can't look now for "-s 'OpenStack Exporter'",
-    # which is more explicit than "-s Exporter" body content)
-    nrpe_setup.add_check(
-        'openstack_exporter_http',
-        'Openstack Exporter HTTP check',
-        "check_http -I 127.0.0.1 -p {} -u / -s Exporter {}".format(
-            port, extra_nrpe_args
+def update_nrpe_config():
+    try:
+        hostname = nrpe.get_nagios_hostname()
+        nrpe_setup = nrpe.NRPE(hostname=hostname)
+        config = hookenv.config()
+        # Note(aluria): check_http addresses LP#1829470
+        # (/metrics takes too long, while / check takes ms
+        # A final fix will land once LP#1829496 is fixed
+        # (we can't look now for "-s 'OpenStack Exporter'",
+        # which is more explicit than "-s Exporter" body content)
+        nrpe_setup.add_check(
+            'openstack_exporter_http',
+            'Openstack Exporter HTTP check',
+            "check_http -I 127.0.0.1 -p {} -u / -s Exporter {}".format(
+                config.get('port'), config.get('extra-nrpe-args')
+            ))
+        nrpe_setup.write()
+    except Exception as e:
+        hookenv.log("NRPE endpoint failed: {}".format(str(e)),
+                    level=hookenv.ERROR)
+
+
+@when('endpoint.target.available'
+      'openstackexporter.started')
+def configure_exporter_service():
+    try:
+        website = endpoint_from_flag('endpoint.target.available')
+        config = hookenv.config()
+        hookenv.log("Openstack-exporter endpoint available on port: {}".format(
+            hookenv.config('port')
         ))
-    nrpe_setup.write()
+        hookenv.open_port(config.get('port'))
+        website.configure(config.get('port'))
+    except Exception as e:
+        hookenv.log("Openstack-exporter endpoint failed: {}".format(str(e)),
+                    level=hookenv.ERROR)
 
 
 @when('config.changed.port',
-      'endpoint.scrape.available',
-      'golang-openstack-exporter.configured_port')
+      'target.available')
 def port_changed():
+    try:
+        website = endpoint_from_name('target')
+        config = hookenv.config()
+        hookenv.log("Port changed to port: {}".format(
+            config.get('port')
+        ))
+        hookenv.open_port(config.get('port'))
+        website.configure(config.get('port'))
+    except Exception as e:
+        hookenv.log("Openstack-exporter endpoint failed: {}".format(str(e)),
+                    level=hookenv.ERROR)
+
+
+@when('config.changed.port',
+      'endpoint.scrape.available')
+def port_changed_scrape():
     prometheus = endpoint_from_name('scrape')
-    hookenv.log("Port changed, telling relations. ({})".format(
-        hookenv.config('port')
+    config = hookenv.config()
+    hookenv.log("Port changed to port: {}".format(
+        config.get('port')
     ))
-    hookenv.open_port(hookenv.config('port'))
-    prometheus.configure(port=hookenv.config('port'))
+    hookenv.open_port(config.get('port'))
+    prometheus.configure(port=config.get('port'))
 
 
-@when('golang-openstack-exporter.started',
+@when('openstackexporter.started',
       'endpoint.scrape.available')
 @when_not('golang-openstack-exporter.configured_port')
 def set_provides_data():
     prometheus = endpoint_from_flag('endpoint.scrape.available')
-    hookenv.log("Scrape Endpoint became available. Telling port. ({})".format(
+    hookenv.log("Scrape endpoint available on port: {}".format(
         hookenv.config('port')
     ))
-    hookenv.open_port(hookenv.config('port'))
-    prometheus.configure(port=hookenv.config('port'))
+    config = hookenv.config()
+    hookenv.open_port(config.get('port'))
+    prometheus.configure(port=config.get('port'))
     set_state('golang-openstack-exporter.configured_port')
 
 
-@when_not('endpoint.scrape.available')
 @when('golang-openstack-exporter.configured_port')
+@when_not('endpoint.scrape.available')
 def prometheus_left():
-    hookenv.log("Scrape Endpoint became unavailable")
+    hookenv.log("Scrape endpoint became unavailable")
     remove_state('golang-openstack-exporter.configured_port')
+
+
+@when('identity.connected')
+def configure_keystone_username():
+    try:
+        keystone = endpoint_from_flag('identity.connected')
+        keystone.request_credentials(SNAP_NAME)
+    except Exception as e:
+        hookenv.log("Keystone endpoint setup failed: {}".format(str(e)),
+                    level=hookenv.ERROR)
+
+
+@when('identity.available')
+def save_creds():
+    try:
+        keystone = endpoint_from_name('identity')
+        reconfig_on_change('keystone-relation-creds', {
+            key: getattr(keystone, key.replace('-', '_'))()
+            for key in keystone.auto_accessors
+        })
+    except Exception as e:
+        hookenv.log("Keystone credentials failed: {}".format(str(e)),
+                    level=hookenv.ERROR)
 
 
 def render_path(key, context):
@@ -269,4 +297,4 @@ def reconfig_on_change(key, data):
         '{} data changed, triggering reconfig'.format(key),
         level=hookenv.DEBUG
     )
-    set_state('exporter.do-reconfig')
+    render_config()

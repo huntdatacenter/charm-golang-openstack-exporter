@@ -1,7 +1,6 @@
 repo: https://github.com/huntdatacenter/charm-golang-openstack-exporter.git
 includes:
   - 'layer:basic'
-  - 'layer:snap'
   - 'interface:http'
   - 'interface:prometheus'
   - 'interface:nrpe-external-master'
