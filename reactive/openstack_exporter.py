@@ -190,33 +190,15 @@ def update_nrpe_config():
                     level=hookenv.ERROR)
 
 
-@when('endpoint.target.available'
-      'openstackexporter.started')
-def configure_exporter_service():
+@when('target.available')
+def configure_http(target):
     try:
-        website = endpoint_from_flag('endpoint.target.available')
         config = hookenv.config()
         hookenv.log("Openstack-exporter endpoint available on port: {}".format(
             hookenv.config('port')
         ))
         hookenv.open_port(config.get('port'))
-        website.configure(config.get('port'))
-    except Exception as e:
-        hookenv.log("Openstack-exporter endpoint failed: {}".format(str(e)),
-                    level=hookenv.ERROR)
-
-
-@when('config.changed.port',
-      'target.available')
-def port_changed():
-    try:
-        website = endpoint_from_name('target')
-        config = hookenv.config()
-        hookenv.log("Port changed to port: {}".format(
-            config.get('port')
-        ))
-        hookenv.open_port(config.get('port'))
-        website.configure(config.get('port'))
+        target.configure(port=config.get('port'))
     except Exception as e:
         hookenv.log("Openstack-exporter endpoint failed: {}".format(str(e)),
                     level=hookenv.ERROR)
@@ -256,23 +238,37 @@ def prometheus_left():
 
 
 @when('identity.connected')
+@when_not('openstackexporter.identityset')
 def configure_keystone_username():
     try:
         keystone = endpoint_from_flag('identity.connected')
         keystone.request_credentials(SNAP_NAME)
+        set_state('openstackexporter.identityset')
     except Exception as e:
         hookenv.log("Keystone endpoint setup failed: {}".format(str(e)),
                     level=hookenv.ERROR)
 
 
-@when('identity.available')
+@when_not('identity.connected')
+@when('openstackexporter.identityset')
+def departed_keystone():
+    remove_state('openstackexporter.identityset')
+    hookenv.log("Keystone endpoint departed")
+
+
+@when('identity.available.auth',
+      'openstackexporter.identityset')
 def save_creds():
     try:
         keystone = endpoint_from_name('identity')
-        reconfig_on_change('keystone-relation-creds', {
+        data = {
             key: getattr(keystone, key.replace('-', '_'))()
             for key in keystone.auto_accessors
-        })
+        }
+        if data.get('credentials_username'):
+            reconfig_on_change('keystone-relation-creds', data)
+        else:
+            remove_state('openstackexporter.identityset')
     except Exception as e:
         hookenv.log("Keystone credentials failed: {}".format(str(e)),
                     level=hookenv.ERROR)
