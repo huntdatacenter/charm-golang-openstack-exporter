@@ -8,7 +8,7 @@ applications:
     num_units: 1
     expose: True
     options:
-      port: 9183
+      port: 9181
       network: False
       compute: False
       image: False
@@ -16,13 +16,15 @@ applications:
   keystone:
     charm: cs:keystone-310
     num_units: 1
+    options:
+      preferred-api-version: 3
   mysql:
     charm: cs:mysql
     num_units: 1
 relations:
 - - mysql:shared-db
   - keystone:shared-db
-- - openstack-exporter:identity-credentials
+- - openstack-exporter:identity
   - keystone:identity-credentials
-- - openstack-exporter:scrape
-  - prometheus:scrape
+- - openstack-exporter:target
+  - prometheus:target

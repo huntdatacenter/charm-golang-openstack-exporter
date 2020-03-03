@@ -6,4 +6,4 @@ openstack-exporter:
       status: 'running'
   network:
     port:
-      '9183': True
+      '9181': True
