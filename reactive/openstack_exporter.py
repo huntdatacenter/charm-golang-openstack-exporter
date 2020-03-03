@@ -153,7 +153,7 @@ def render_config():
     render_path(DEFAULTS, ctx)
     render_path(SERVICE, ctx)
     restart_service()
-    set_state('openstackexporter.configured')
+    hookenv.status_set('active', 'Ready')
 
 
 @when('openstackexporter.installed'
@@ -161,7 +161,6 @@ def render_config():
 @when_not('openstackexporter.started')
 def start():
     render_config()
-    hookenv.status_set('active', 'Ready')
     set_state('openstackexporter.started')
 
 
