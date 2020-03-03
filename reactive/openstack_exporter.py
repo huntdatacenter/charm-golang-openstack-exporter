@@ -176,25 +176,21 @@ def restart_service():
 
 @when('nrpe-external-master.available')
 def update_nrpe_config():
-    try:
-        hostname = nrpe.get_nagios_hostname()
-        nrpe_setup = nrpe.NRPE(hostname=hostname)
-        config = hookenv.config()
-        # Note(aluria): check_http addresses LP#1829470
-        # (/metrics takes too long, while / check takes ms
-        # A final fix will land once LP#1829496 is fixed
-        # (we can't look now for "-s 'OpenStack Exporter'",
-        # which is more explicit than "-s Exporter" body content)
-        nrpe_setup.add_check(
-            'openstack_exporter_http',
-            'Openstack Exporter HTTP check',
-            "check_http -I 127.0.0.1 -p {} -u / -s Exporter {}".format(
-                config.get('port'), config.get('extra-nrpe-args')
-            ))
-        nrpe_setup.write()
-    except Exception as e:
-        hookenv.log("NRPE endpoint failed: {}".format(str(e)),
-                    level=hookenv.ERROR)
+    hostname = nrpe.get_nagios_hostname()
+    nrpe_setup = nrpe.NRPE(hostname=hostname)
+    config = hookenv.config()
+    # Note(aluria): check_http addresses LP#1829470
+    # (/metrics takes too long, while / check takes ms
+    # A final fix will land once LP#1829496 is fixed
+    # (we can't look now for "-s 'OpenStack Exporter'",
+    # which is more explicit than "-s Exporter" body content)
+    nrpe_setup.add_check(
+        'openstack_exporter_http',
+        'Openstack Exporter HTTP check',
+        "check_http -I 127.0.0.1 -p {} -u / -s Exporter {}".format(
+            config.get('port'), config.get('extra-nrpe-args')
+        ))
+    nrpe_setup.write()
 
 
 @when('target.available')
