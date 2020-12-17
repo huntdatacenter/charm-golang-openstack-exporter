@@ -140,9 +140,15 @@ def render_config():
         creds['credentials_username']
     ))
     config = hookenv.config()
-    ctx = config
-    services = ['image', 'compute', 'network', 'volume', 'identity']
+    disable_metrics = config['disable_metrics'].strip().split(',')
+    ctx = config.copy()
+    services = [
+        'image', 'compute', 'network', 'volume', 'identity', 'object-store',
+        'load-balancer', 'container-infra', 'dns', 'baremetal', 'gnocchi']
     ctx['disabled'] = [item for item in services if not config[item]]
+    ctx['disable_metrics'] = [
+        item.strip() for item in disable_metrics if item.strip()
+    ]
     ctx['credentials'] = CONFIG_MAP[CLOUDS]['target']
     ctx['config_file'] = CONFIG_MAP[DEFAULTS]['target']
     ctx['binary_file'] = BINARY_FILE
