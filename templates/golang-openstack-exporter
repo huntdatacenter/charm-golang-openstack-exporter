@@ -1,8 +1,15 @@
 # Config is managed by Openstack exporter charm
 # Set the command-line arguments to pass to the server.
+# disable_metrics supports e.g.:
+# nova-limits_vcpus_max, nova-total_vms, neutron-port, cinder-volumes
 ARGS="--web.listen-address=:{{ port }}" \
      "--os-client-config={{ credentials }}" \
-     "--prefix={{ prefix }}"{% if disabled %} \{% endif %}
-     {% for dis in disabled -%}
-     "--disable-service.{{ dis }}" \
-     {% endfor -%}
+     "--prefix={{ prefix }}" \
+     {%- if disable_slow_metrics %}
+     "--disable-slow-metrics"  \{% endif %}
+     {%- if collect_metric_time %}
+     "--collect-metric-time"  \{% endif %}
+     {%- for dis in disabled %}
+     "--disable-service.{{ dis }}" \{% endfor %}
+     {%- for item in disable_metrics %}
+     "--disable-metric={{ item }}" \{% endfor %}

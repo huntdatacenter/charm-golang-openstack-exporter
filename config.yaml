@@ -54,6 +54,51 @@ options:
     default: True
     description: |
       Identity service exporter
+  object-store:
+    type: boolean
+    default: False
+    description: |
+      Object store service exporter
+  load-balancer:
+    type: boolean
+    default: False
+    description: |
+      Load balancer service exporter
+  container-infra:
+    type: boolean
+    default: False
+    description: |
+      Container infra service exporter
+  dns:
+    type: boolean
+    default: False
+    description: |
+      DNS service exporter
+  baremetal:
+    type: boolean
+    default: False
+    description: |
+      Baremetal service exporter
+  gnocchi:
+    type: boolean
+    default: False
+    description: |
+      Gnocchi service exporter
+  disable_metrics:
+    type: string
+    default: ""
+    description: |
+      Disable metrics named in comma separated string
+  disable_slow_metrics:
+    type: boolean
+    default: False
+    description: |
+      Disable slow metrics for performance reasons
+  collect_metric_time:
+    type: boolean
+    default: True
+    description: |
+      Export time spent collecting each metric
   prefix:
     default: "openstack"
     type: string
