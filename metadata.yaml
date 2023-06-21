@@ -20,8 +20,8 @@ provides:
     interface: nrpe-external-master
     scope: container
 series:
-  - xenial
-  - bionic
+  - focal
+  - jammy
 extra-bindings:
   public:
   admin:
